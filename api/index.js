@@ -163,8 +163,16 @@ app.post('/bfhl', async (req, res) => {
         console.log(`AI response for "${question}": ${single}`);
         return res.json({ is_success: true, official_email: OFFICIAL_EMAIL, data: single });
       } catch (err) {
-        console.error('AI error:', err.message);
-        return sendError(res, 502, 'AI service error');
+        // Detailed logging for Vercel logs (safe to show error.message and response details)
+        console.error('AI error - full:', {
+          message: err.message,
+          code: err.code || null,
+          status: err.response?.status || null,
+          data: err.response?.data || null
+        });
+        // Return helpful error for debugging (no API keys included)
+        const dbg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+        return res.status(502).json({ is_success: false, official_email: OFFICIAL_EMAIL || null, error: 'AI service error', details: dbg });
       }
     }
 
